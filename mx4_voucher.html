@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MX4 Rescue — Payment Voucher</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f5f5f3;padding:16px;color:#1a1a1a}
+.screen{display:none}.screen.active{display:block}
+.pv{background:#fff;border:0.5px solid #ddd;border-radius:12px;overflow:hidden;max-width:700px;margin:0 auto}
+.ph{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:3px solid #C0622A;background:#fff}
+.ph img{height:42px;width:auto}
+.vno-val{font-size:16px;font-weight:700;color:#C0622A;font-family:monospace;letter-spacing:0.04em}
+.vbadge{background:#FEF0E0;color:#9C5310;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;border:0.5px solid #F5C580}
+.pb{padding:14px 18px;display:flex;flex-direction:column;gap:11px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.field{display:flex;flex-direction:column;gap:3px}
+.field label{font-size:10px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:0.07em}
+.field input,.field select{font-size:13px;padding:7px 10px;border:0.5px solid #ddd;border-radius:8px;background:#fff;color:#1a1a1a;width:100%}
+.field input:focus,.field select:focus{outline:none;border-color:#C0622A;box-shadow:0 0 0 2px rgba(192,98,42,0.12)}
+.field input[readonly]{background:#f5f5f3;color:#888}
+.sec{border-top:0.5px solid #eee;padding-top:11px}
+.sec-label{font-size:10px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px}
+.items-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.items-table th{font-size:10px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;padding:0 6px 5px;text-align:left;border-bottom:0.5px solid #ddd}
+.items-table th.r{text-align:right}
+.items-table td{padding:4px 5px;vertical-align:middle}
+.items-table td input{font-size:13px;padding:5px 7px;border:0.5px solid #ddd;border-radius:6px;background:#fff;color:#1a1a1a;width:100%}
+.items-table td input:focus{outline:none;border-color:#C0622A}
+.total-cell{font-size:13px;font-weight:600;text-align:right;padding-right:6px;font-family:monospace;color:#1a1a1a}
+.add-row{font-size:12px;color:#C0622A;background:none;border:0.5px dashed #C0622A;border-radius:6px;padding:4px 12px;cursor:pointer;margin-top:5px}
+.total-bar{display:flex;justify-content:flex-end;align-items:center;gap:14px;padding:8px 0 2px;border-top:0.5px solid #eee;margin-top:5px}
+.total-bar .tl{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.07em}
+.total-bar .tv{font-size:17px;font-weight:600;color:#1a1a1a;font-family:monospace}
+.actions{display:flex;gap:8px;justify-content:flex-end;padding-top:2px}
+.btn{font-size:12px;font-weight:600;padding:8px 16px;border-radius:8px;cursor:pointer;border:none;transition:opacity 0.15s}
+.btn-outline{background:transparent;border:0.5px solid #ccc;color:#1a1a1a}
+.btn-outline:hover{background:#f5f5f3}
+.btn-primary{background:#C0622A;color:#fff}
+.btn-primary:hover{opacity:0.88}
+.btn-green{background:#3B6D11;color:#fff}
+.btn-green:hover{opacity:0.88}
+.locked-field{font-size:13px;padding:7px 10px;border:0.5px solid #ddd;border-radius:8px;background:#f5f5f3;color:#1a1a1a;width:100%;min-height:34px}
+.locked-row{display:grid;grid-template-columns:48% 12% 20% 20%;gap:4px;padding:5px 0;border-bottom:0.5px solid #eee;font-size:13px;align-items:center}
+.locked-row.head{font-size:10px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;border-bottom:0.5px solid #ccc;padding-bottom:4px}
+.locked-row span:last-child{text-align:right;font-family:monospace;font-weight:600}
+.ack-box{background:#FEF0E0;border:0.5px solid #F5C580;border-radius:8px;padding:10px 14px;font-size:12px;color:#7A4010;line-height:1.6}
+.sig-input{font-size:14px;padding:10px 12px;border:1.5px solid #C0622A;border-radius:8px;background:#fff;color:#1a1a1a;width:100%;font-style:italic}
+.confirm-card{background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:28px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px;max-width:700px;margin:0 auto}
+.check-circle{width:52px;height:52px;border-radius:50%;background:#EAF3DE;display:flex;align-items:center;justify-content:center}
+.signed-badge{background:#EAF3DE;color:#27500A;font-size:11px;font-weight:600;padding:3px 12px;border-radius:20px;border:0.5px solid #97C459}
+.mode-bar{display:flex;gap:6px;margin-bottom:14px;align-items:center;flex-wrap:wrap;max-width:700px;margin-left:auto;margin-right:auto}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 0.7s linear infinite;margin-right:6px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:500px){.row2,.row3{grid-template-columns:1fr}.locked-row{grid-template-columns:50% 10% 20% 20%}}
+</style>
+</head>
+<body>
+
+<div class="mode-bar">
+  <span style="font-size:11px;color:#888;margin-right:4px">View as:</span>
+  <button class="btn btn-primary" id="tab-admin" onclick="switchMode('admin')" style="font-size:11px;padding:5px 12px">Admin — create</button>
+  <button class="btn btn-outline" id="tab-payee" onclick="switchMode('payee')" style="font-size:11px;padding:5px 12px">Payee — sign</button>
+</div>
+
+<!-- ADMIN -->
+<div class="screen active" id="screen-admin">
+  <div class="pv">
+    <div class="ph">
+      <img src="https://mx4foundationke.sharepoint.com/sites/MX4/SiteAssets/mx4_logo.png" onerror="this.style.display='none';document.getElementById('logo-text-a').style.display='block'" alt="MX4 Rescue"/>
+      <div id="logo-text-a" style="display:none;font-size:18px;font-weight:700;color:#C0622A">MX4 RESCUE</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="vbadge">Payment Voucher</span>
+        <span class="vno-val" id="vno-display">2026/001</span>
+      </div>
+    </div>
+    <div class="pb">
+      <div class="row3">
+        <div class="field"><label>Voucher No.</label><input type="text" id="voucher_no" value="2026/001" readonly/></div>
+        <div class="field"><label>Date</label><input type="date" id="date"/></div>
+        <div class="field"><label>Payment Mode</label>
+          <select id="payment_mode"><option>Cash</option><option>Mobile Money</option><option>Bank Transfer</option></select>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Payee Name</label><input type="text" id="payee_name" placeholder="Full name"/></div>
+        <div class="field"><label>Payee Email</label><input type="text" id="contact" placeholder="Email address"/></div>
+      </div>
+      <div class="field"><label>Transaction Reference No.</label><input type="text" id="txn_ref" placeholder="e.g. M-PESA code or bank ref"/></div>
+      <div class="sec">
+        <div class="sec-label">Description of Goods / Services</div>
+        <table class="items-table">
+          <thead><tr>
+            <th style="width:46%">Description</th>
+            <th style="width:14%">Qty</th>
+            <th style="width:20%">Unit Price (KES)</th>
+            <th class="r" style="width:20%">Total (KES)</th>
+          </tr></thead>
+          <tbody id="items-body">
+            <tr><td><input type="text" placeholder="Item" oninput="recalc()"/></td><td><input type="number" value="1" min="0" oninput="recalc()"/></td><td><input type="number" placeholder="0" oninput="recalc()"/></td><td class="total-cell">—</td></tr>
+            <tr><td><input type="text" placeholder="Item" oninput="recalc()"/></td><td><input type="number" value="1" min="0" oninput="recalc()"/></td><td><input type="number" placeholder="0" oninput="recalc()"/></td><td class="total-cell">—</td></tr>
+          </tbody>
+        </table>
+        <button class="add-row" onclick="addRow()">+ add row</button>
+        <div class="total-bar">
+          <span class="tl">Total Amount (KES)</span>
+          <span class="tv" id="grand-total">0</span>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label">Prepared By</div>
+        <div class="row2">
+          <div class="field"><label>Name</label><input type="text" id="prep_name" placeholder="Your full name"/></div>
+          <div class="field"><label>Your Email</label><input type="text" id="admin_email" placeholder="Your email address"/></div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-outline" onclick="clearForm()">Clear</button>
+        <button class="btn btn-primary" id="send-btn" onclick="sendToPayee()">Send to Payee →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAYEE -->
+<div class="screen" id="screen-payee">
+  <div class="pv">
+    <div class="ph">
+      <img src="https://mx4foundationke.sharepoint.com/sites/MX4/SiteAssets/mx4_logo.png" onerror="this.style.display='none';document.getElementById('logo-text-p').style.display='block'" alt="MX4 Rescue"/>
+      <div id="logo-text-p" style="display:none;font-size:18px;font-weight:700;color:#C0622A">MX4 RESCUE</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="vbadge">Payment Voucher</span>
+        <span class="vno-val" id="p-vno">2026/001</span>
+      </div>
+    </div>
+    <div class="pb">
+      <div class="row3">
+        <div class="field"><label>Voucher No.</label><div class="locked-field" id="p-vno2"></div></div>
+        <div class="field"><label>Date</label><div class="locked-field" id="p-date"></div></div>
+        <div class="field"><label>Payment Mode</label><div class="locked-field" id="p-mode"></div></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Payee Name</label><div class="locked-field" id="p-name"></div></div>
+        <div class="field"><label>Contact</label><div class="locked-field" id="p-contact"></div></div>
+      </div>
+      <div class="field"><label>Transaction Reference</label><div class="locked-field" id="p-ref"></div></div>
+      <div class="sec">
+        <div class="sec-label">Description of Goods / Services</div>
+        <div class="locked-row head"><span>Description</span><span>Qty</span><span>Unit Price</span><span>Total</span></div>
+        <div id="p-items"></div>
+        <div class="total-bar">
+          <span class="tl">Total Amount (KES)</span>
+          <span class="tv" id="p-total">0</span>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="row2">
+          <div class="field"><label>Prepared By</label><div class="locked-field" id="p-prep"></div></div>
+          <div class="field"><label>Date Prepared</label><div class="locked-field" id="p-prep-date"></div></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="ack-box" style="margin-bottom:10px">By signing below, I confirm that I have received the above payment in full and that all details are correct.</div>
+        <div class="field">
+          <label>Your Full Name (as signature)</label>
+          <input class="sig-input" type="text" id="payee-sig" placeholder="Type your full name to sign…"/>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-green" id="sign-btn" onclick="submitSigned()">I confirm and sign ✓</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SIGNED -->
+<div class="screen" id="screen-signed">
+  <div class="confirm-card">
+    <div class="check-circle">
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="12" stroke="#3B6D11" stroke-width="1.5"/><path d="M7 13l4 4 8-8" stroke="#3B6D11" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <span class="signed-badge">Voucher signed</span>
+    <div style="font-size:15px;font-weight:600;color:#1a1a1a">Thank you — your signature has been recorded.</div>
+    <div style="font-size:13px;color:#888;line-height:1.6;max-width:380px;text-align:center">The signed voucher has been sent back to the MX4 Rescue admin. No further action needed from you.</div>
+    <div style="font-size:12px;color:#888;margin-top:4px" id="signed-summary"></div>
+  </div>
+</div>
+
+<script>
+const FLOW2_URL='https://default4f484195c45d4307a579d353499069.b7.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/fb707c972ef14a23b8ba93a902b7ae74/triggers/manual/paths/invoke?api-version=1';
+
+let state={voucher_no:'2026/001',year:2026,seq:1,sharepoint_id:'',date:'',mode:'',payee:'',contact:'',ref:'',prep:'',admin_email:'',items:[],total:0};
+
+document.getElementById('date').valueAsDate=new Date();
+
+function recalc(){
+  let grand=0;
+  document.querySelectorAll('#items-body tr').forEach(r=>{
+    const inp=r.querySelectorAll('input');
+    const q=parseFloat(inp[1].value)||0,p=parseFloat(inp[2].value)||0,t=q*p;
+    r.querySelector('.total-cell').textContent=t>0?t.toLocaleString():'—';
+    grand+=t;
+  });
+  document.getElementById('grand-total').textContent=grand.toLocaleString();
+}
+
+function addRow(){
+  const tb=document.getElementById('items-body');
+  const tr=document.createElement('tr');
+  tr.innerHTML='<td><input type="text" placeholder="Item" oninput="recalc()"/></td><td><input type="number" value="1" min="0" oninput="recalc()"/></td><td><input type="number" placeholder="0" oninput="recalc()"/></td><td class="total-cell">—</td>';
+  tb.appendChild(tr);
+}
+
+function collectItems(){
+  const items=[];
+  document.querySelectorAll('#items-body tr').forEach(r=>{
+    const inp=r.querySelectorAll('input');
+    const desc=inp[0].value.trim();
+    if(!desc)return;
+    const q=parseFloat(inp[1].value)||0,p=parseFloat(inp[2].value)||0;
+    items.push({desc,qty:q,unit:p,total:q*p});
+  });
+  return items;
+}
+
+function sendToPayee(){
+  if(!document.getElementById('payee_name').value.trim()){alert('Enter payee name');return;}
+  if(!document.getElementById('contact').value.trim()){alert('Enter payee email');return;}
+  if(!document.getElementById('prep_name').value.trim()){alert('Enter your name');return;}
+  if(!document.getElementById('admin_email').value.trim()){alert('Enter your email');return;}
+  const items=collectItems();
+  if(!items.length){alert('Add at least one item');return;}
+  state={...state,
+    date:document.getElementById('date').value,
+    mode:document.getElementById('payment_mode').value,
+    payee:document.getElementById('payee_name').value,
+    contact:document.getElementById('contact').value,
+    ref:document.getElementById('txn_ref').value,
+    prep:document.getElementById('prep_name').value,
+    admin_email:document.getElementById('admin_email').value,
+    items,total:items.reduce((s,i)=>s+i.total,0)
+  };
+  document.getElementById('p-vno').textContent=state.voucher_no;
+  document.getElementById('p-vno2').textContent=state.voucher_no;
+  document.getElementById('p-date').textContent=state.date;
+  document.getElementById('p-mode').textContent=state.mode;
+  document.getElementById('p-name').textContent=state.payee;
+  document.getElementById('p-contact').textContent=state.contact;
+  document.getElementById('p-ref').textContent=state.ref||'—';
+  document.getElementById('p-prep').textContent=state.prep;
+  document.getElementById('p-prep-date').textContent=state.date;
+  document.getElementById('p-total').textContent=state.total.toLocaleString();
+  const cont=document.getElementById('p-items');
+  cont.innerHTML='';
+  state.items.forEach(i=>{
+    const d=document.createElement('div');
+    d.className='locked-row';
+    d.innerHTML='<span>'+i.desc+'</span><span>'+i.qty+'</span><span>'+i.unit.toLocaleString()+'</span><span>'+i.total.toLocaleString()+'</span>';
+    cont.appendChild(d);
+  });
+  switchMode('payee');
+}
+
+async function submitSigned(){
+  const sig=document.getElementById('payee-sig').value.trim();
+  if(!sig){alert('Please type your full name to sign');return;}
+  const btn=document.getElementById('sign-btn');
+  btn.innerHTML='<span class="spinner"></span>Submitting…';
+  btn.disabled=true;
+  const payload={voucherID:String(state.sharepoint_id||'1'),signedBy:sig,signedAt:new Date().toISOString()};
+  try{
+    await fetch(FLOW2_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    document.getElementById('signed-summary').textContent='Voucher '+state.voucher_no+' · KES '+state.total.toLocaleString()+' · Signed: '+sig;
+    switchMode('signed');
+  }catch(e){
+    alert('Submission failed — please try again');
+    btn.innerHTML='I confirm and sign ✓';
+    btn.disabled=false;
+  }
+}
+
+function clearForm(){
+  document.querySelectorAll('#screen-admin input:not([readonly])').forEach(i=>{i.value=i.type==='number'?'1':'';});
+  recalc();
+}
+
+function switchMode(m){
+  ['admin','payee','signed'].forEach(s=>document.getElementById('screen-'+s).classList.toggle('active',s===m));
+  ['admin','payee'].forEach(t=>{
+    const el=document.getElementById('tab-'+t);
+    if(!el)return;
+    el.className='btn '+(t===m?'btn-primary':'btn-outline');
+    el.style.cssText='font-size:11px;padding:5px 12px';
+  });
+}
+</script>
+</body>
+</html>
